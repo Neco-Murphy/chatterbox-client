@@ -2,20 +2,36 @@
 var app = {
   server: 'https://api.parse.com/1/classes/chatterbox',
   rooms: [],
+  friends: [],
+  friendStyle: {'font-weight':'bold'},
   roomFilter: undefined,
   init: function(){
     var self = this;
+
+    //submits a chat when clicked
     $('#send .submit').submit(function(event){
-      console.log("hello");
-      self.handleSubmit();
       event.preventDefault();
+      self.handleSubmit();
+      $('#message').val('');
+      $('#roomname').val('');
+      app.fetch();
     });
 
+    //brings you back to all chats when header is clicked
     $('.allChats').on('click', function(){
       app.roomFilter = undefined;
       app.fetch();
     });
 
+   //makes friend styled with 'app.friendStyle' when clicked
+    $('#main').on('click', '.username',function(event){
+      event.preventDefault();
+      var self = $(this).text();
+      app.addFriend(self);
+      app.fetch();
+    });
+
+    //adds a filter to the rooms when a room button is clicked
     $('#roomSelect').on('click','.roombutton',function(){
       var self = $(this).text();
       app.filterRoom(self);
@@ -60,6 +76,12 @@ var app = {
     var user = $('<a class ="username" href=""></a>').text(message.username).addClass(message.username);
 
     var chatMessage = div.text(': ' + message.createdAt +' '+message.text);
+
+    //if message is from a friend add css styling
+    if(app.friends.indexOf(message.username)!==-1){
+      chatMessage.css(app.friendStyle);
+    };
+
     div.prepend(user);
     $('#chats').append(chatMessage).addClass(room);
 
@@ -109,6 +131,15 @@ var app = {
           }
 
         });
+
+        //clear friends div
+        app.clearFriends();
+        //add friend names to friends div
+        _.each(app.friends, function(item){
+          var $p = $('<p></p>').text(item);
+          $('#friends').append($p);
+        });
+
         app.clearRooms();
         app.addRoom();
       },
@@ -141,7 +172,14 @@ var app = {
     app.roomFilter = roomname;
   },
 
-  addFriend: function(){
+  addFriend: function(friend){
+    if(app.friends.indexOf(friend) === -1){
+      app.friends.push(friend);
+    }
+  },
+
+  clearFriends: function(){
+    $('#friends').children('p').remove();
   }
 };
 
