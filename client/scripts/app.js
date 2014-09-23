@@ -11,10 +11,15 @@ var app = {
       event.preventDefault();
     });
 
+    $('.allChats').on('click', function(){
+      app.roomFilter = undefined;
+      app.fetch();
+    });
+
     $('#roomSelect').on('click','.roombutton',function(){
       var self = $(this).text();
-      console.log(self);
       app.filterRoom(self);
+      app.fetch();
     });
   },
 
@@ -54,12 +59,10 @@ var app = {
     var div = $('<div></div>').addClass(message.username);
     var user = $('<a class ="username" href=""></a>').text(message.username).addClass(message.username);
 
-    if(arguments[1] === undefined){
-      room = "#chats";
-    }
     var chatMessage = div.text(': ' + message.createdAt +' '+message.text);
     div.prepend(user);
-    $(room).append(chatMessage);
+    $('#chats').append(chatMessage).addClass(room);
+
     $('.username').on('click', function(){
       app.addFriend();
     });
@@ -77,9 +80,11 @@ var app = {
         var list = [];
         app.clearMessages();
         //if room filter is defined, make the list of 10 messages of that roomname.
-        if(app.roomfilter){
+        if(app.roomFilter){
           var counter = 0;
+
           _.each(data.results, function(item){
+
             if(item.roomname===app.roomFilter){
               if(counter<=10){
                 list.push(item);
