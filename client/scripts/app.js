@@ -11,9 +11,10 @@ var app = {
       event.preventDefault();
     });
 
-    $('.roombutton').on('click', function(){
-
-      app.filterRoom(this.text());
+    $('#roomSelect').on('click','.roombutton',function(){
+      var self = $(this).text();
+      console.log(self);
+      app.filterRoom(self);
     });
   },
 
@@ -124,7 +125,7 @@ var app = {
   addRoom: function(){
 
     _.each(app.rooms, function(roomname){
-      var roomButton = $('<button></button>').addClass(roomname, 'roombutton').text(roomname);
+      var roomButton = $('<button></button>').addClass('roombutton').text(roomname);
     $('#roomSelect').append(roomButton);
     });
 
