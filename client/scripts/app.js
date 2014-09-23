@@ -18,7 +18,8 @@ var app = {
     });
 
     //brings you back to all chats when header is clicked
-    $('.allChats').on('click', function(){
+    $('.allChats').on('click', function(event){
+      event.preventDefault();
       app.roomFilter = undefined;
       app.fetch();
     });
@@ -72,10 +73,25 @@ var app = {
   },
 
   addMessage: function(message, room){
+
+    //add dive for each class
     var div = $('<div></div>').addClass(message.username);
+
+    //add dive for each user
     var user = $('<a class ="username" href=""></a>').text(message.username).addClass(message.username);
 
-    var chatMessage = div.text(': ' + message.createdAt +' '+message.text);
+
+    //add a cleaner looking time stamp
+    var time = message.createdAt.substr(11,5);
+    var minute = (time.substr(2,3));
+    var timeAMPM = (+time.substr(0,2)>12)? (time.substr(0,2)-12) +minute +' PM': time.substr(0,5)+ ' AM';
+    var date = message.createdAt.substr(5,2)+'/'+message.createdAt.substr(8,2)+'/'+message.createdAt.substr(0,4);
+
+    //add div for date/time
+    var $timeDIV = $('<div class="time"></div>').text(timeAMPM + ' -- ' + date);
+
+    //add message to the div
+    var chatMessage = div.text(': ' +message.text);
 
     //if message is from a friend add css styling
     if(app.friends.indexOf(message.username)!==-1){
@@ -83,6 +99,7 @@ var app = {
     };
 
     div.prepend(user);
+    div.append($timeDIV);
     $('#chats').append(chatMessage).addClass(room);
 
     $('.username').on('click', function(){
@@ -184,9 +201,9 @@ var app = {
 };
 
 app.fetch();
-setInterval(function(){
-  app.fetch();
-}, 5000);
+// setInterval(function(){
+//   app.fetch();
+// }, 5000);
 
 var message = {
   'username': 'shawndrost',
