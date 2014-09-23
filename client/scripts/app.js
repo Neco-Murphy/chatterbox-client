@@ -9,11 +9,15 @@ var app = {
     var self = this;
 
     //submits a chat when clicked
-    $('#send .submit').submit(function(event){
+    $('.submit').on('click','button', function(event){
       event.preventDefault();
-      self.handleSubmit();
+      app.handleSubmit();
       $('#message').val('');
-      $('#roomname').val('');
+      if(app.roomFilter===undefined){
+        $('#roomname').val('');
+      }else{
+      $('#roomname').val(app.roomFilter);
+      }
       app.fetch();
     });
 
@@ -37,7 +41,20 @@ var app = {
       var self = $(this).text();
       app.filterRoom(self);
       app.fetch();
+     $("#roomname").val(self);
     });
+  },
+
+  action: function(data){
+    app.refreshMessage(data);
+    app.addRoomArray(data);
+
+    //clear friends div
+    app.clearFriends();
+    app.displayFriends();
+
+    app.clearRooms();
+    app.addRoom();
   },
 
   send: function(message){
@@ -74,10 +91,10 @@ var app = {
 
   addMessage: function(message, room){
 
-    //add dive for each class
+    //add div for each class
     var div = $('<div></div>').addClass(message.username);
 
-    //add dive for each user
+    //add div for each user
     var user = $('<a class ="username" href=""></a>').text(message.username).addClass(message.username);
 
 
@@ -109,6 +126,56 @@ var app = {
 
   },
 
+  makeListOfTen: function(data){
+      var list = [];
+      //if room filter is defined, make the list of 10 messages of that roomname.
+      if(app.roomFilter){
+        var counter = 0;
+      //make a list of results to display with just room messages
+        _.each(data.results, function(item){
+          if(item.roomname===app.roomFilter){
+            if(counter<=10){
+              list.push(item);
+              counter++;
+            }
+          }
+        });
+      } else {
+        //if it is not defined, make the list with last 10 messages.
+        list = data.results.slice(0, 10);
+      }
+
+    return list;
+  },
+
+  refreshMessage: function(data){
+        app.clearMessages();
+        var list = app.makeListOfTen(data);
+
+        //go through the list and add messages for each item.
+        _.each(list,function(item){
+          app.addMessage(item, app.roomFilter);
+        });
+
+  },
+
+  addRoomArray: function(data){
+    //check entire list for room names
+    _.each(data.results, function(item){
+      if(item.roomname && app.rooms.indexOf(item.roomname) === -1) {
+        app.rooms.push(item.roomname);
+      }
+    });
+  },
+
+  displayFriends: function(){
+    //add friend names to friends div
+    _.each(app.friends, function(item){
+      var $p = $('<p></p>').text(item);
+      $('#friends').append($p);
+    });
+  },
+
   fetch: function(){
     $.ajax({
       url: this.server,
@@ -116,49 +183,7 @@ var app = {
       data: {'order' : '-createdAt'},
       contentType: 'application/json',
       success: function (data) {
-        var list = [];
-        app.clearMessages();
-        //if room filter is defined, make the list of 10 messages of that roomname.
-        if(app.roomFilter){
-          var counter = 0;
-
-          _.each(data.results, function(item){
-
-            if(item.roomname===app.roomFilter){
-              if(counter<=10){
-                list.push(item);
-                counter++;
-              }
-            }
-          });
-        } else {
-          //if it is not defined, make the list with last 10 messages.
-          list = data.results.slice(0, 10);
-        }
-
-        //go through the list and add messages for each item.
-        _.each(list,function(item){
-          app.addMessage(item, app.roomFilter);
-        });
-
-        //check entire list for room names
-        _.each(data.results, function(item){
-          if(item.roomname && app.rooms.indexOf(item.roomname) === -1) {
-            app.rooms.push(item.roomname);
-          }
-
-        });
-
-        //clear friends div
-        app.clearFriends();
-        //add friend names to friends div
-        _.each(app.friends, function(item){
-          var $p = $('<p></p>').text(item);
-          $('#friends').append($p);
-        });
-
-        app.clearRooms();
-        app.addRoom();
+        app.action(data);
       },
       error: function (data) {
         console.error('chatterbox: Failed to fetch message');
@@ -201,9 +226,9 @@ var app = {
 };
 
 app.fetch();
-// setInterval(function(){
-//   app.fetch();
-// }, 5000);
+setInterval(function(){
+  app.fetch();
+}, 5000);
 
 var message = {
   'username': 'shawndrost',
